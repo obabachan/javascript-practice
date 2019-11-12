@@ -3,6 +3,22 @@ import colorList from "./colorList.json";
 
 import "./App.css";
 
+function ColorNameList(props) {
+  const rowsCount = Math.ceil(props.list.length / props.columnCount);
+  return (
+    <div
+      className="color-list"
+      style={{ gridTemplateRows: `repeat(${rowsCount}, auto)` }}
+    >
+      {props.list.map((el, idx) => (
+        <div key={idx} style={{ backgroundColor: el.name, width: "200px" }}>
+          {el.name}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -56,30 +72,30 @@ class App extends React.Component {
   }
   render() {
     return (
-      <div className="App" style={{ columnCount: this.state.columnCount }}>
-        {this.state.sort}
-        <br />
-        {this.state.columnCount}
-        <h1>{colorList.length}colors</h1>
-        <label for="columnInput">Number of columns</label>
-        <input
-          type="number"
-          step="1"
-          min="1"
-          max="10"
-          style={{ width: "3em" }}
-          name="columnINput"
-          value={this.state.columnCount}
-          onChange={this.columnCountClick}
+      <div className="App">
+        <div>
+          {this.state.sort}
+          <br />
+          {this.state.columnCount}
+          <h1>{colorList.length}colors</h1>
+          <label for="columnInput">Count of columns</label>
+          <input
+            type="number"
+            step="1"
+            min="1"
+            max="10"
+            style={{ width: "3em" }}
+            name="columnINput"
+            value={this.state.columnCount}
+            onChange={this.columnCountClick}
+          />
+          <br />
+          sort: <button onClick={this.nameSortClick}>name</button>
+        </div>
+        <ColorNameList
+          list={this.state.list}
+          columnCount={this.state.columnCount}
         />
-        <br />
-        sort: <button onClick={this.nameSortClick}>name</button>
-        {/* , <a href="#" onClick={this.colorSortClick}>color</a> */}
-        {this.state.list.map((el, idx) => (
-          <div key={idx} style={{ backgroundColor: el.name, width: "200px" }}>
-            {el.name}
-          </div>
-        ))}
       </div>
     );
   }

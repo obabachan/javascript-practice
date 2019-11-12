@@ -1,4 +1,6 @@
 .App {
-  /* column-count: 10; */
-  /* width: 100%; */
+}
+.color-list {
+  display: grid;
+  grid-auto-flow: column;
 }
