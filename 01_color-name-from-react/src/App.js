@@ -3,6 +3,16 @@ import colorList from "./colorList.json";
 
 import "./App.css";
 
+// colorList init
+colorList.forEach((el, idx, arr) => {
+  const [_, r, g, b] = el.hex.match(/^#(.{2})(.{2})(.{2})$/);
+  arr[idx]["brightness"] = Math.sqrt(
+    parseInt(r, 16) ** 2 * 0.241 +
+      parseInt(g, 16) ** 2 * 0.691 +
+      parseInt(b, 16) ** 2 * 0.068
+  );
+});
+
 function ColorNameList(props) {
   const rowsCount = Math.ceil(props.list.length / props.columnCount);
   return (
@@ -38,17 +48,7 @@ function sortList(sortType, list) {
       }
       break;
 
-    case "color":
-      _colors.forEach((el, idx, arr) => {
-        const [_, r, g, b] = el.hex.match(/^#(.{2})(.{2})(.{2})$/);
-        arr[idx]["brightness"] = Math.sqrt(
-          parseInt(r, 16) ** 2 * 0.241 +
-            parseInt(g, 16) ** 2 * 0.691 +
-            parseInt(b, 16) ** 2 * 0.068
-        );
-        console.log(arr[idx]);
-        console.log(el);
-      });
+    case "brightness":
       if (sortType.asc === true) {
         _colors.sort((a, b) => b.brightness - a.brightness);
       } else {
@@ -62,7 +62,7 @@ function sortList(sortType, list) {
 function App() {
   const [sortType, setSortType] = useState({ type: "name", asc: false });
   const [list, setList] = useState(colorList);
-  const [columnCount, setColumn] = useState(1);
+  const [columnCount, setColumn] = useState(3);
 
   const columnCountClick = useCallback(e => {
     setColumn(e.target.value);
@@ -92,13 +92,16 @@ function App() {
           onChange={columnCountClick}
         />
         <br />
-        sort:{" "}
-        <button value="name" onClick={sortTypeClick}>
-          name
-        </button>
-        <button value="color" onClick={sortTypeClick}>
-          color
-        </button>
+        <div>
+          sort:{" "}
+          <button value="name" onClick={sortTypeClick}>
+            name
+          </button>
+          <button value="brightness" onClick={sortTypeClick}>
+            brightness
+          </button>
+        </div>
+        {/* Alignment: */}
       </div>
       <ColorNameList list={list} columnCount={columnCount} />
     </div>
