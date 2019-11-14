@@ -1,6 +1,9 @@
 .App {
+  background-color: aliceblue;
 }
 .color-list {
   display: grid;
   grid-auto-flow: column;
+  grid-column-gap: 5px;
+  justify-content: start;
 }
