@@ -36,6 +36,25 @@ function sortList(sortType, list) {
           return x < y ? -1 : x > y ? 1 : 0;
         });
       }
+      break;
+
+    case "color":
+      _colors.forEach((el, idx, arr) => {
+        const [_, r, g, b] = el.hex.match(/^#(.{2})(.{2})(.{2})$/);
+        arr[idx]["brightness"] = Math.sqrt(
+          parseInt(r, 16) ** 2 * 0.241 +
+            parseInt(g, 16) ** 2 * 0.691 +
+            parseInt(b, 16) ** 2 * 0.068
+        );
+        console.log(arr[idx]);
+        console.log(el);
+      });
+      if (sortType.asc === true) {
+        _colors.sort((a, b) => b.brightness - a.brightness);
+      } else {
+        _colors.sort((a, b) => a.brightness - b.brightness);
+      }
+      break;
   }
   return _colors;
 }
@@ -49,13 +68,11 @@ function App() {
     setColumn(e.target.value);
   });
 
-  const nameSortClick = useCallback(e => {
+  const sortTypeClick = useCallback(e => {
     setSortType({ type: e.target.value, asc: !sortType.asc });
-    setList(sortList(sortType, list));
+    setList(sortList({ type: e.target.value, asc: !sortType.asc }, list));
   });
-  const colorSortClick = useCallback(() => {
-    this.sortStateSet("color");
-  });
+
   return (
     <div className="App">
       <div>
@@ -76,8 +93,11 @@ function App() {
         />
         <br />
         sort:{" "}
-        <button value="name" onClick={nameSortClick}>
+        <button value="name" onClick={sortTypeClick}>
           name
+        </button>
+        <button value="color" onClick={sortTypeClick}>
+          color
         </button>
       </div>
       <ColorNameList list={list} columnCount={columnCount} />
