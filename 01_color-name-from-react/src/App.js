@@ -15,11 +15,19 @@ colorList.forEach((el, idx, arr) => {
 
 function ColorNameList(props) {
   const rowsCount = Math.ceil(props.list.length / props.columnCount);
+  const order =
+    props.order === "columns"
+      ? {
+          gridTemplateRows: `repeat(${rowsCount}, auto)`,
+          gridAutoFlow: "column",
+        }
+      : props.order === "rows"
+      ? {
+          gridTemplateColumns: `repeat(${props.columnCount}, auto)`,
+        }
+      : "";
   return (
-    <div
-      className="color-list"
-      style={{ gridTemplateRows: `repeat(${rowsCount}, auto)` }}
-    >
+    <div className="color-list" style={order}>
       {props.list.map((el, idx) => (
         <div key={idx} style={{ backgroundColor: el.name, width: "200px" }}>
           {el.name}
@@ -63,6 +71,7 @@ function App() {
   const [sortType, setSortType] = useState({ type: "name", asc: false });
   const [list, setList] = useState(colorList);
   const [columnCount, setColumn] = useState(3);
+  const [order, setOrder] = useState("columns");
 
   const columnCountClick = useCallback(e => {
     setColumn(e.target.value);
@@ -73,14 +82,20 @@ function App() {
     setList(sortList({ type: e.target.value, asc: !sortType.asc }, list));
   });
 
+  const orderClick = useCallback(e => {
+    setOrder(e.target.value);
+  });
+
   return (
     <div className="App">
       <div>
         {sortType.type}/ {sortType.asc.toString()}
         <br />
         {columnCount}
+        <br />
+        {order}
         <h1>{colorList.length}colors</h1>
-        <label for="columnInput">Count of columns</label>
+        <label for="columnInput">Count of columns:</label>
         <input
           type="number"
           step="1"
@@ -93,7 +108,7 @@ function App() {
         />
         <br />
         <div>
-          sort:{" "}
+          Sort by:{" "}
           <button value="name" onClick={sortTypeClick}>
             name
           </button>
@@ -101,9 +116,17 @@ function App() {
             brightness
           </button>
         </div>
-        {/* Alignment: */}
+        <div>
+          Order of:
+          <button value="columns" onClick={orderClick}>
+            columns
+          </button>
+          <button value="rows" onClick={orderClick}>
+            rows
+          </button>
+        </div>
       </div>
-      <ColorNameList list={list} columnCount={columnCount} />
+      <ColorNameList list={list} columnCount={columnCount} order={order} />
     </div>
   );
 }
