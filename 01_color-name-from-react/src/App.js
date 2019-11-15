@@ -92,15 +92,15 @@ function App() {
   const sortTypeClick = useCallback(e => {
     setSortType({ type: e.target.value, asc: !sortType.asc });
     setList(sortList({ type: e.target.value, asc: !sortType.asc }, list));
-  });
+  }, []);
 
   const orderClick = useCallback(e => {
     setOrder(e.target.value);
-  });
+  }, []);
 
   const fontColorClick = useCallback(e => {
     setFontColor(e.target.value);
-  });
+  }, []);
 
   return (
     <div className="App">
