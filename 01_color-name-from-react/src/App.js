@@ -5,12 +5,12 @@ import "./App.css";
 
 // colorList init
 colorList.forEach((el, idx, arr) => {
-  const [_, r, g, b] = el.hex.match(/^#(.{2})(.{2})(.{2})$/);
-  arr[idx]["brightness"] = Math.sqrt(
-    parseInt(r, 16) ** 2 * 0.241 +
-      parseInt(g, 16) ** 2 * 0.691 +
-      parseInt(b, 16) ** 2 * 0.068
-  );
+  let [_, r, g, b] = el.hex.match(/^#(.{2})(.{2})(.{2})$/);
+  r = parseInt(r, 16);
+  g = parseInt(g, 16);
+  b = parseInt(b, 16);
+  arr[idx]["brightness"] = Math.sqrt(r ** 2 * 0.241 + g ** 2 * 0.691 + b ** 2 * 0.068);
+  arr[idx]["opposite"] = `rgb(${255 - r},${255 - g},${255 - b})`;
 });
 
 function ColorNameList(props) {
@@ -26,11 +26,22 @@ function ColorNameList(props) {
           gridTemplateColumns: `repeat(${props.columnCount}, auto)`,
         }
       : "";
+
   return (
     <div className="color-list" style={order}>
       {props.list.map((el, idx) => (
         <div key={idx} style={{ backgroundColor: el.name, width: "200px" }}>
-          {el.name}
+          <p
+            style={
+              props.fontColor === "opposite"
+                ? { color: el.opposite }
+                : el.brightness > 130
+                ? { color: "black" }
+                : { color: "white" }
+            }
+          >
+            {el.name}
+          </p>
         </div>
       ))}
     </div>
@@ -72,6 +83,7 @@ function App() {
   const [list, setList] = useState(colorList);
   const [columnCount, setColumn] = useState(3);
   const [order, setOrder] = useState("columns");
+  const [fontColor, setFontColor] = useState("black");
 
   const columnCountClick = useCallback(e => {
     setColumn(e.target.value);
@@ -86,6 +98,10 @@ function App() {
     setOrder(e.target.value);
   });
 
+  const fontColorClick = useCallback(e => {
+    setFontColor(e.target.value);
+  });
+
   return (
     <div className="App">
       <div>
@@ -94,6 +110,8 @@ function App() {
         {columnCount}
         <br />
         {order}
+        <br />
+        {fontColor}
         <h1>{colorList.length}colors</h1>
         <label for="columnInput">Count of columns:</label>
         <input
@@ -108,7 +126,7 @@ function App() {
         />
         <br />
         <div>
-          Sort by:{" "}
+          Sort by:
           <button value="name" onClick={sortTypeClick}>
             name
           </button>
@@ -125,8 +143,17 @@ function App() {
             rows
           </button>
         </div>
+        <div>
+          Font color:
+          <button value="black" onClick={fontColorClick}>
+            black and white
+          </button>
+          <button value="opposite" onClick={fontColorClick}>
+            opposite
+          </button>
+        </div>
       </div>
-      <ColorNameList list={list} columnCount={columnCount} order={order} />
+      <ColorNameList list={list} columnCount={columnCount} order={order} fontColor={fontColor} />
     </div>
   );
 }
