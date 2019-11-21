@@ -4,14 +4,58 @@ import "./App.css";
 const axios = require("axios");
 
 function RankingList(props) {
+  const elements =
+    props.list.length &&
+    props.list.map((el, idx) => (
+      <tr key={idx}>
+        <td>
+          <img src={el.owner.avatar_url} width="30px" />
+        </td>
+        <td>
+          <a href={el.html_url} target="_blank">
+            {el.name}
+          </a>
+        </td>
+        <td>
+          <a href={el.owner.html_url} target="_blank">
+            {el.owner.login}
+          </a>
+        </td>
+        <td>{el.stargazers_count}</td>
+        <td>{el.description}</td>
+        <td>{el.created_at}</td>
+        <td>{el.updated_at}</td>
+        <td>
+          {el.license.url ? (
+            <a href={el.license.url} target="_blank">
+              {el.license.name}
+            </a>
+          ) : (
+            <span>{el.license.name}</span>
+          )}
+        </td>
+        <td></td>
+      </tr>
+    ));
   return (
     <div>
-      {props.list.length &&
-        props.list.map((el, idx) => (
-          <div key={idx}>
-            <p>{el.name}</p>
-          </div>
-        ))}
+      {props.list.length && (
+        <table>
+          <thead>
+            <tr>
+              <td>icon</td>
+              <td>repository</td>
+              <td>owner</td>
+              <td>stars</td>
+              <td>discription</td>
+              <td>create_at</td>
+              <td>update_at</td>
+              <td>licence</td>
+            </tr>
+          </thead>
+          <tbody>{elements}</tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -27,31 +71,22 @@ function App() {
   const [list, setList] = useState({});
   const [loading, setLoading] = useState("empty");
 
-  // Add a request interceptor
   instance.interceptors.request.use(
     function(config) {
-      // Do something before request is sent
       setLoading("loading");
       return config;
     },
     function(error) {
-      // Do something with request error
       return Promise.reject(error);
     }
   );
 
-  // Add a response interceptor
   instance.interceptors.response.use(
     function(response) {
-      // Any status code that lie within the range of 2xx cause this function to trigger
-      // Do something with response data
       setLoading("finish");
-
       return response;
     },
     function(error) {
-      // Any status codes that falls outside the range of 2xx cause this function to trigger
-      // Do something with response error
       return Promise.reject(error);
     }
   );
@@ -63,7 +98,7 @@ function App() {
         params: {
           q: "stars:>1000",
           sort: "stars",
-          per_page: 100,
+          per_page: 10,
         },
       })
       .then(results => {
@@ -74,6 +109,7 @@ function App() {
 
   return (
     <div className="App">
+      <h1>Github Top10 Ranking of number of stars</h1>
       {loading}
       <br />
       <button onClick={listRoadButtonClick}>road</button>
