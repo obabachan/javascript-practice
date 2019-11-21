@@ -1,26 +1,25 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./App.css";
+
+const axios = require("axios");
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  const instance = axios.create({
+    method: "get",
+    baseURL: "https://api.github.com/",
+    timeout: 4000,
+    headers: { Accept: "application/vnd.github.v3+json" },
+  });
+  instance
+    .get("/search/repositories", {
+      params: {
+        q: "stars:>1000",
+        sort: "stars",
+        per_page: 100,
+      },
+    })
+    .then(results => console.log(results));
+  return <div className="App">test</div>;
 }
 
 export default App;
