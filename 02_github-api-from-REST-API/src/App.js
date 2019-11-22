@@ -90,7 +90,6 @@ function App() {
       return Promise.reject(error);
     }
   );
-  const listRoadButtonClick2 = () => {};
 
   const listRoadButtonClick = () => {
     instance
