@@ -11,7 +11,7 @@ function RankingList(props) {
     {
       key: "repository",
       value: el => (
-        <a href={el.html_url} target="_blank">
+        <a href={el.html_url} target="_blank" rel="noopener noreferrer">
           {el.name}
         </a>
       ),
@@ -19,7 +19,7 @@ function RankingList(props) {
     {
       key: "owner",
       value: el => (
-        <a href={el.owner.html_url} target="_blank">
+        <a href={el.owner.html_url} target="_blank" rel="noopener noreferrer">
           {el.owner.login}
         </a>
       ),
@@ -32,7 +32,7 @@ function RankingList(props) {
       key: "licence",
       value: el =>
         el.license.url ? (
-          <a href={el.license.url} target="_blank">
+          <a href={el.license.url} target="_blank" rel="noopener noreferrer">
             {el.license.name}
           </a>
         ) : (
