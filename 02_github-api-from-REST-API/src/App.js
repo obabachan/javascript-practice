@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from "react";
 import "./App.css";
+import { Button } from "semantic-ui-react";
+import "semantic-ui-less/semantic.less";
 
 const axios = require("axios");
 
@@ -108,6 +110,7 @@ function App() {
 
   return (
     <div className="App">
+      <Button>test</Button>
       <h1>Github Top10 Ranking of number of stars</h1>
       {loading}
       <br />
