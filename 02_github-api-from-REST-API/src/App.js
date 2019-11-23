@@ -1,63 +1,67 @@
 import React, { useState, useCallback } from "react";
 import "./App.css";
-import { Button } from "semantic-ui-react";
+import { Container, Header, Button, Table } from "semantic-ui-react";
 import "semantic-ui-less/semantic.less";
 
 const axios = require("axios");
 
 function RankingList(props) {
-  const elements =
+  const columns = [
+    { key: "icon", value: el => <img src={el.owner.avatar_url} width="30px" /> },
+    {
+      key: "repository",
+      value: el => (
+        <a href={el.html_url} target="_blank">
+          {el.name}
+        </a>
+      ),
+    },
+    {
+      key: "owner",
+      value: el => (
+        <a href={el.owner.html_url} target="_blank">
+          {el.owner.login}
+        </a>
+      ),
+    },
+    { key: "stars", value: el => el.stargazers_count },
+    { key: "discription", value: el => el.description },
+    { key: "create_at", value: el => el.created_at },
+    { key: "update_at", value: el => el.updated_at },
+    {
+      key: "licence",
+      value: el =>
+        el.license.url ? (
+          <a href={el.license.url} target="_blank">
+            {el.license.name}
+          </a>
+        ) : (
+          <span>{el.license.name}</span>
+        ),
+    },
+  ];
+  const records =
     props.list.length &&
     props.list.map((el, idx) => (
-      <tr key={idx}>
-        <td>
-          <img src={el.owner.avatar_url} width="30px" />
-        </td>
-        <td>
-          <a href={el.html_url} target="_blank">
-            {el.name}
-          </a>
-        </td>
-        <td>
-          <a href={el.owner.html_url} target="_blank">
-            {el.owner.login}
-          </a>
-        </td>
-        <td>{el.stargazers_count}</td>
-        <td>{el.description}</td>
-        <td>{el.created_at}</td>
-        <td>{el.updated_at}</td>
-        <td>
-          {el.license.url ? (
-            <a href={el.license.url} target="_blank">
-              {el.license.name}
-            </a>
-          ) : (
-            <span>{el.license.name}</span>
-          )}
-        </td>
-        <td></td>
-      </tr>
+      <Table.Row>
+        {columns.map(col => (
+          <Table.Cell>{col.value(el)}</Table.Cell>
+        ))}
+      </Table.Row>
     ));
+
   return (
     <div>
-      {props.list.length && (
-        <table>
-          <thead>
-            <tr>
-              <td>icon</td>
-              <td>repository</td>
-              <td>owner</td>
-              <td>stars</td>
-              <td>discription</td>
-              <td>create_at</td>
-              <td>update_at</td>
-              <td>licence</td>
-            </tr>
-          </thead>
-          <tbody>{elements}</tbody>
-        </table>
-      )}
+      <Table celled>
+        <Table.Header>
+          <Table.Row>
+            {columns.map(el => (
+              <Table.HeaderCell>{el.key}</Table.HeaderCell>
+            ))}
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>{records}</Table.Body>
+      </Table>
     </div>
   );
 }
@@ -110,12 +114,15 @@ function App() {
 
   return (
     <div className="App">
-      <Button>test</Button>
-      <h1>Github Top10 Ranking of number of stars</h1>
-      {loading}
-      <br />
-      <button onClick={listRoadButtonClick}>road</button>
-      <RankingList list={list} />
+      <Container>
+        <Header as="h1" icon="favorite" content="Github Top10 Ranking of number of stars"></Header>
+        {loading}
+        <br />
+        <Button onClick={listRoadButtonClick} positive={true}>
+          road
+        </Button>
+        <RankingList list={list} />
+      </Container>
     </div>
   );
 }
