@@ -8,4 +8,5 @@
 
 ## 02_github-api-from-REST-API
 
-- [github api from REST API](https://obabachan.github.io/javascript-practice/01_github-api-from-REST-API-01/) / list only
+- [github api from REST API 1](https://obabachan.github.io/javascript-practice/01_github-api-from-REST-API-01/) / list only
+- [github api from REST API 2](https://obabachan.github.io/javascript-practice/02_github-api-from-REST-API-02/) / added semantic-ui / moment.js
