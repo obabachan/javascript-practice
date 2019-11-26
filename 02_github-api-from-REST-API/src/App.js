@@ -1,61 +1,77 @@
 import React, { useState, useCallback } from "react";
 import "./App.css";
-import { Container, Header, Button, Table } from "semantic-ui-react";
+import { Container, Header, Button, Table, Image, icon, Icon } from "semantic-ui-react";
 import "semantic-ui-less/semantic.less";
 
 const axios = require("axios");
+const moment = require("moment");
+moment().format();
 
 function RankingList(props) {
-  const columns = [
-    { key: "icon", value: el => <img src={el.owner.avatar_url} width="30px" /> },
+  const fields = [
     {
-      key: "repository",
+      key: "repository / owner",
       value: el => (
-        <a href={el.html_url} target="_blank" rel="noopener noreferrer">
-          {el.name}
-        </a>
+        <Header as="h4" image>
+          <Image src={el.owner.avatar_url} size="mini" />
+          <Header.Content>
+            <a href={el.html_url} target="_blank" rel="noopener noreferrer">
+              {el.name}
+            </a>{" "}
+            <Header.Subheader>
+              <a href={el.owner.html_url} target="_blank" rel="noopener noreferrer">
+                {el.owner.login}
+              </a>
+            </Header.Subheader>
+          </Header.Content>
+        </Header>
       ),
     },
-    {
-      key: "owner",
-      value: el => (
-        <a href={el.owner.html_url} target="_blank" rel="noopener noreferrer">
-          {el.owner.login}
-        </a>
-      ),
-    },
-    { key: "stars", value: el => el.stargazers_count },
+    // {
+    //   key: "repository",
+    //   value: el => (
+    //     <a href={el.html_url} target="_blank" rel="noopener noreferrer">
+    //       {el.name}
+    //     </a>
+    //   ),
+    // },
+    // {
+    //   key: "owner",
+    //   value: el => (
+    //     <a href={el.owner.html_url} target="_blank" rel="noopener noreferrer">
+    //       {el.owner.login}
+    //     </a>
+    //   ),
+    // },
+    { key: "stars", value: el => el.stargazers_count.toLocaleString() },
     { key: "discription", value: el => el.description },
-    { key: "create_at", value: el => el.created_at },
-    { key: "update_at", value: el => el.updated_at },
+    { key: "language", value: el => el.language },
+    { key: "update_at", value: el => moment(el.updated_at).fromNow() },
     {
-      key: "licence",
-      value: el =>
-        el.license.url ? (
-          <a href={el.license.url} target="_blank" rel="noopener noreferrer">
-            {el.license.name}
-          </a>
-        ) : (
-          <span>{el.license.name}</span>
-        ),
+      key: "create_at",
+      value: el => {
+        const date = new Date(el.created_at);
+        return `${date.getFullYear()}/${date.getMonth()}/${date.getDay()}`;
+      },
     },
+    { key: "licence", value: el => el.license.key },
   ];
   const records =
     props.list.length &&
     props.list.map((el, idx) => (
       <Table.Row>
-        {columns.map(col => (
-          <Table.Cell>{col.value(el)}</Table.Cell>
+        {fields.map((col, idx) => (
+          <Table.Cell singleLine={idx === 0}>{col.value(el)}</Table.Cell>
         ))}
       </Table.Row>
     ));
 
   return (
     <div>
-      <Table celled>
+      <Table celled selectable>
         <Table.Header>
           <Table.Row>
-            {columns.map(el => (
+            {fields.map(el => (
               <Table.HeaderCell>{el.key}</Table.HeaderCell>
             ))}
           </Table.Row>
@@ -70,16 +86,18 @@ const instance = axios.create({
   method: "get",
   baseURL: "https://api.github.com/",
   timeout: 4000,
-  headers: { Accept: "application/vnd.github.v3+json" },
+  headers: {
+    Accept: "application/vnd.github.v3+json",
+  },
 });
 
 function App() {
   const [list, setList] = useState({});
-  const [loading, setLoading] = useState("empty");
+  const [loading, setLoading] = useState(false);
 
   instance.interceptors.request.use(
     function(config) {
-      setLoading("loading");
+      setLoading(true);
       return config;
     },
     function(error) {
@@ -89,7 +107,7 @@ function App() {
 
   instance.interceptors.response.use(
     function(response) {
-      setLoading("finish");
+      setLoading(false);
       return response;
     },
     function(error) {
@@ -98,29 +116,36 @@ function App() {
   );
 
   const listRoadButtonClick = () => {
-    instance
-      .get("/search/repositories", {
-        params: {
-          q: "stars:>1000",
-          sort: "stars",
-          per_page: 10,
-        },
-      })
-      .then(results => {
-        console.log(results);
-        setList(results.data.items);
-      });
+    if (loading === false) {
+      instance
+        .get("/search/repositories", {
+          params: {
+            q: "stars:>1000",
+            sort: "stars",
+            per_page: 10,
+          },
+        })
+        .then(results => {
+          console.log(results);
+          setList(results.data.items);
+        });
+    }
   };
 
   return (
     <div className="App">
-      <Container>
-        <Header as="h1" icon="favorite" content="Github Top10 Ranking of number of stars"></Header>
+      <Container textAlign="center">
+        <Header as="h1" textAlign="center">
+          <Icon name="star" />
+          Github Top10 Ranking of number of stars
+        </Header>
         {loading}
         <br />
-        <Button onClick={listRoadButtonClick} positive={true}>
+        <Button onClick={listRoadButtonClick} positive={true} loading={loading}>
           road
         </Button>
+        <br />
+        <br />
         <RankingList list={list} />
       </Container>
     </div>
