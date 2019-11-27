@@ -115,7 +115,7 @@ function App() {
     }
   );
 
-  const listRoadButtonClick = () => {
+  const listLoadButtonClick = () => {
     if (loading === false) {
       instance
         .get("/search/repositories", {
@@ -141,8 +141,8 @@ function App() {
         </Header>
         {loading}
         <br />
-        <Button onClick={listRoadButtonClick} positive={true} loading={loading}>
-          road
+        <Button onClick={listLoadButtonClick} positive={true} loading={loading}>
+          load
         </Button>
         <br />
         <br />
