@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import "./App.css";
-import { Container, Header, Button, Table, Image, icon, Icon } from "semantic-ui-react";
+import { Container, Header, Button, Table, Image, Icon, Message } from "semantic-ui-react";
 import "semantic-ui-less/semantic.less";
 
 const axios = require("axios");
@@ -27,22 +27,6 @@ function RankingList(props) {
         </Header>
       ),
     },
-    // {
-    //   key: "repository",
-    //   value: el => (
-    //     <a href={el.html_url} target="_blank" rel="noopener noreferrer">
-    //       {el.name}
-    //     </a>
-    //   ),
-    // },
-    // {
-    //   key: "owner",
-    //   value: el => (
-    //     <a href={el.owner.html_url} target="_blank" rel="noopener noreferrer">
-    //       {el.owner.login}
-    //     </a>
-    //   ),
-    // },
     { key: "stars", value: el => el.stargazers_count.toLocaleString() },
     { key: "discription", value: el => el.description },
     { key: "language", value: el => el.language },
@@ -54,7 +38,7 @@ function RankingList(props) {
         return `${date.getFullYear()}/${date.getMonth()}/${date.getDay()}`;
       },
     },
-    { key: "licence", value: el => el.license.key },
+    { key: "licence", value: el => el.license && el.license.key },
   ];
   const records =
     props.list.length &&
@@ -94,6 +78,13 @@ const instance = axios.create({
 function App() {
   const [list, setList] = useState({});
   const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState({
+    title: "Which do you see?",
+    text: "Please, select the rank you want to see.",
+    status: { warning: true },
+  });
+
+  const pages = [...Array(10).keys()].map(i => ({ page: i + 1, text: `${i * 100 + 1} - ${i * 100 + 100}` }));
 
   instance.interceptors.request.use(
     function(config) {
@@ -115,7 +106,7 @@ function App() {
     }
   );
 
-  const listLoadButtonClick = () => {
+  const listLoadButtonClick = (e, props) => {
     if (loading === false) {
       instance
         .get("/search/repositories", {
@@ -123,6 +114,7 @@ function App() {
             q: "stars:>1000",
             sort: "stars",
             per_page: 10,
+            page: props.page,
           },
         })
         .then(results => {
@@ -132,6 +124,9 @@ function App() {
     }
   };
 
+  const test = (e, props) => {
+    console.log(e, props);
+  };
   return (
     <div className="App">
       <Container textAlign="center">
@@ -139,13 +134,24 @@ function App() {
           <Icon name="star" />
           Github Top10 Ranking of number of stars
         </Header>
-        {loading}
+        <Message>something message</Message>
         <br />
         <Button onClick={listLoadButtonClick} positive={true} loading={loading}>
           load
         </Button>
         <br />
         <br />
+        <Button.Group widths="10">
+          {pages.map(el => (
+            <Button page={el.page} onClick={listLoadButtonClick}>
+              {el.text}
+            </Button>
+          ))}
+        </Button.Group>
+        <Message {...notice.status}>
+          {notice.title}/{notice.text}
+        </Message>
+
         <RankingList list={list} />
       </Container>
     </div>
