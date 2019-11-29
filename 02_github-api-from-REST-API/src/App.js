@@ -1,14 +1,17 @@
 import React, { useState, useCallback } from "react";
 import "./App.css";
-import { Container, Header, Button, Table, Image, Icon, Message } from "semantic-ui-react";
+import { Container, Header, Button, Table, Image, Icon, Message, Loader } from "semantic-ui-react";
 import "semantic-ui-less/semantic.less";
 
 const axios = require("axios");
 const moment = require("moment");
 moment().format();
 
+const PER_PAGE = 10;
+
 function RankingList(props) {
   const fields = [
+    { key: "rank", value: (el, idx) => (props.page - 1) * PER_PAGE + idx },
     {
       key: "repository / owner",
       value: el => (
@@ -35,7 +38,7 @@ function RankingList(props) {
       key: "create_at",
       value: el => {
         const date = new Date(el.created_at);
-        return `${date.getFullYear()}/${date.getMonth()}/${date.getDay()}`;
+        return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
       },
     },
     { key: "licence", value: el => el.license && el.license.key },
@@ -44,8 +47,8 @@ function RankingList(props) {
     props.list.length &&
     props.list.map((el, idx) => (
       <Table.Row>
-        {fields.map((col, idx) => (
-          <Table.Cell singleLine={idx === 0}>{col.value(el)}</Table.Cell>
+        {fields.map((col, colx) => (
+          <Table.Cell singleLine={colx === 1}>{col.value(el, idx + 1)}</Table.Cell>
         ))}
       </Table.Row>
     ));
@@ -75,84 +78,101 @@ const instance = axios.create({
   },
 });
 
+let isSet = false;
+
 function App() {
   const [list, setList] = useState({});
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState({
-    title: "Which do you see?",
-    text: "Please, select the rank you want to see.",
+    title: "Please, choose",
+    text: "Select the rank you want to see.",
     status: { warning: true },
   });
+  const [page, setPage] = useState(0);
 
-  const pages = [...Array(10).keys()].map(i => ({ page: i + 1, text: `${i * 100 + 1} - ${i * 100 + 100}` }));
+  const pages = [...Array(10).keys()].map(i => ({
+    page: i + 1,
+    text: `${i * PER_PAGE + 1} - ${i * PER_PAGE + PER_PAGE}`,
+  }));
 
-  instance.interceptors.request.use(
-    function(config) {
-      setLoading(true);
-      return config;
-    },
-    function(error) {
-      return Promise.reject(error);
-    }
-  );
+  if (!isSet) {
+    instance.interceptors.request.use(
+      function(config) {
+        isSet = true;
+        setLoading(true);
+        setNotice({
+          title: "Loading ...",
+          text: ``,
+          status: { warning: true },
+        });
+        console.log("request");
 
-  instance.interceptors.response.use(
-    function(response) {
-      setLoading(false);
-      return response;
-    },
-    function(error) {
-      return Promise.reject(error);
-    }
-  );
-
-  const listLoadButtonClick = (e, props) => {
+        return config;
+      },
+      function(error) {
+        return Promise.reject(error);
+      }
+    );
+  }
+  const listLoadButtonClick = async (e, props) => {
     if (loading === false) {
       instance
         .get("/search/repositories", {
           params: {
             q: "stars:>1000",
             sort: "stars",
-            per_page: 10,
-            page: props.page,
+            per_page: PER_PAGE,
+            page: props.page.page,
           },
         })
         .then(results => {
           console.log(results);
+          setNotice({
+            title: "Success",
+            text: `Displayed rank ${props.page.text}.`,
+            status: { success: true },
+          });
           setList(results.data.items);
+          setPage(props.page.page);
+        })
+        .catch(error => {
+          console.log(error.response.status);
+          console.log(error.response.headers);
+          setNotice({ title: "Error", text: `${error.response.status} error.`, status: { error: true } });
+        })
+        .finally(() => {
+          setLoading(false);
+          console.log("finally");
         });
     }
   };
 
-  const test = (e, props) => {
-    console.log(e, props);
-  };
   return (
     <div className="App">
       <Container textAlign="center">
-        <Header as="h1" textAlign="center">
-          <Icon name="star" />
-          Github Top10 Ranking of number of stars
-        </Header>
-        <Message>something message</Message>
-        <br />
-        <Button onClick={listLoadButtonClick} positive={true} loading={loading}>
-          load
-        </Button>
-        <br />
-        <br />
+        <Message>
+          <Header as="h1" textAlign="center">
+            <Icon name="star" />
+            Github Top10 Ranking of number of stars
+          </Header>
+          * There is a rate limit of 10 times per minute.
+        </Message>
         <Button.Group widths="10">
           {pages.map(el => (
-            <Button page={el.page} onClick={listLoadButtonClick}>
+            <Button page={el} onClick={listLoadButtonClick}>
               {el.text}
             </Button>
           ))}
         </Button.Group>
-        <Message {...notice.status}>
-          {notice.title}/{notice.text}
+
+        <Message {...notice.status} icon>
+          <Message.Content>
+            <Message.Header>{notice.title}</Message.Header>
+            {loading ? <Loader active={true} /> : notice.text}
+          </Message.Content>
         </Message>
 
-        <RankingList list={list} />
+        <RankingList list={list} page={page} />
       </Container>
     </div>
   );
