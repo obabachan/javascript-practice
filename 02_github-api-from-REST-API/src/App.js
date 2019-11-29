@@ -127,6 +127,10 @@ function App() {
         })
         .then(results => {
           console.log(results);
+          const resetTime = moment.unix(results.headers["x-ratelimit-reset"]);
+          const nowTime = moment();
+          console.log(resetTime);
+          console.log(resetTime.diff(nowTime, "seconds"));
           setNotice({
             title: "Success",
             text: `Displayed rank ${props.page.text}.`,
@@ -138,7 +142,19 @@ function App() {
         .catch(error => {
           console.log(error.response.status);
           console.log(error.response.headers);
-          setNotice({ title: "Error", text: `${error.response.status} error.`, status: { error: true } });
+          const resetTime = moment.unix(error.response.headers["x-ratelimit-reset"]);
+          const nowTime = moment();
+
+          console.log(resetTime);
+          if (error.response && error.response.status === 403) {
+            setNotice({
+              title: "Error",
+              text: `${error.response.status} error.\n Please try after ${resetTime.diff(nowTime, "seconds")} seconds.`,
+              status: { error: true },
+            });
+          } else {
+            setNotice({ title: "Error", text: `${error.response.status} error.`, status: { error: true } });
+          }
         })
         .finally(() => {
           setLoading(false);
