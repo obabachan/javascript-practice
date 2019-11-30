@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { Container, Header, Button, Table, Image, Icon, Message, Loader, Segment } from "semantic-ui-react";
+import { Container, Header, Button, Table, Image, Icon, Message, Loader, Segment, Item, Grid } from "semantic-ui-react";
 import "semantic-ui-less/semantic.less";
 
 const axios = require("axios");
@@ -15,19 +15,21 @@ function RankingList(props) {
     {
       key: "repository / owner",
       value: el => (
-        <Header as="h4" image>
-          <Image src={el.owner.avatar_url} size="mini" />
-          <Header.Content>
-            <a href={el.html_url} target="_blank" rel="noopener noreferrer">
-              {el.name}
-            </a>{" "}
-            <Header.Subheader>
-              <a href={el.owner.html_url} target="_blank" rel="noopener noreferrer">
-                {el.owner.login}
-              </a>
-            </Header.Subheader>
-          </Header.Content>
-        </Header>
+        <Item.Group>
+          <Item>
+            <Item.Image as="img" size="mini" src={el.owner.avatar_url} />
+            <Item.Content>
+              <Item.Header as="a" href={el.html_url} target="_blank" rel="noopener noreferrer">
+                {el.name}
+              </Item.Header>
+              <Item.Description>
+                <a href={el.owner.html_url} target="_blank" rel="noopener noreferrer">
+                  {el.owner.login}
+                </a>
+              </Item.Description>
+            </Item.Content>
+          </Item>
+        </Item.Group>
       ),
       singleLine: true,
     },
@@ -150,9 +152,10 @@ function App() {
           if (error.response && error.response.status === 403) {
             errorText = errorText + "\n Please try after a while.";
           }
+          const tmpError = error.response || error.request;
           setNotice({
             title: "Error",
-            text: `${error.response.status} ${errorText}`,
+            text: `${tmpError.status || "Unknown error"} ${errorText}`,
             status: { error: true },
             reset: shapeReset(moment.unix(error.response.headers["x-ratelimit-reset"]), error.response.headers),
           });
@@ -165,58 +168,56 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <Container textAlign="center">
-        <Message>
-          <Header as="h1" textAlign="center">
-            <Icon name="star" />
-            Github Top1000 Ranking of number of stars
-          </Header>
-          * There is a rate limit of 10 times per minute.
-        </Message>
-        <Button.Group widths="10">
-          {pages.map((el, idx) => (
-            <Button page={el} onClick={listLoadButtonClick} active={page === idx + 1}>
-              {el.text}
-            </Button>
-          ))}
-        </Button.Group>
+    <Container textAlign="center">
+      <Message style={{ marginTop: "20px" }}>
+        <Header as="h1" textAlign="center">
+          <Icon name="star" />
+          Github Top1000 Ranking of number of stars
+        </Header>
+        * There is a rate limit of 10 times per minute.
+      </Message>
+      <Button.Group widths="10">
+        {pages.map((el, idx) => (
+          <Button page={el} onClick={listLoadButtonClick} active={page === idx + 1}>
+            {el.text}
+          </Button>
+        ))}
+      </Button.Group>
 
-        <Message {...notice.status}>
-          <Message.Content>
-            <Message.Header>{notice.title}</Message.Header>
-            {loading ? (
-              <Loader active={true} />
-            ) : (
-              <p>
-                <p>{notice.text}</p>
-                {notice.reset.seconds && (
-                  <p>
-                    (Limit release time {notice.reset.seconds} seconds ago. ratelimit-remaining {notice.reset.count}/
-                    {notice.reset.total})
-                  </p>
-                )}
-              </p>
-            )}
-          </Message.Content>
-        </Message>
+      <Message {...notice.status}>
+        <Message.Content>
+          <Message.Header>{notice.title}</Message.Header>
+          {loading ? (
+            <Loader active={true} />
+          ) : (
+            <p>
+              <p>{notice.text}</p>
+              {notice.reset.seconds && (
+                <p>
+                  (Limit release time {notice.reset.seconds} seconds ago. ratelimit-remaining {notice.reset.count}/
+                  {notice.reset.total})
+                </p>
+              )}
+            </p>
+          )}
+        </Message.Content>
+      </Message>
 
-        <RankingList list={list} page={page} />
+      <RankingList list={list} page={page} />
 
-        <Segment vertical></Segment>
-        <Segment vertical>
-          <div>
-            <a
-              href="https://github.com/obabachan/javascript-practice/tree/master/02_github-api-from-REST-API"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Icon name="github" size="large" />
-            </a>
-          </div>
-        </Segment>
-      </Container>
-    </div>
+      <Segment vertical></Segment>
+      <Segment vertical>
+        <div>
+          <a
+            href="https://github.com/obabachan/javascript-practice/tree/master/02_github-api-from-REST-API"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Icon name="github" size="large" />
+          </a>
+        </div>
+      </Segment>
+    </Container>
   );
 }
 
