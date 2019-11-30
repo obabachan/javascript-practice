@@ -86,6 +86,7 @@ function App() {
   const [notice, setNotice] = useState({
     title: "Please, choose",
     text: "Select the rank you want to see.",
+    reset: {},
     status: { warning: true },
   });
   const [page, setPage] = useState(0);
@@ -135,6 +136,11 @@ function App() {
             title: "Success",
             text: `Displayed rank ${props.page.text}.`,
             status: { success: true },
+            reset: {
+              seconds: resetTime.diff(nowTime, "seconds"),
+              count: results.headers["x-ratelimit-remaining"],
+              total: results.headers["x-ratelimit-limit"],
+            },
           });
           setList(results.data.items);
           setPage(props.page.page);
@@ -149,8 +155,13 @@ function App() {
           if (error.response && error.response.status === 403) {
             setNotice({
               title: "Error",
-              text: `${error.response.status} error.\n Please try after ${resetTime.diff(nowTime, "seconds")} seconds.`,
+              text: `${error.response.status} error.\n Please try after a while.`,
               status: { error: true },
+              reset: {
+                seconds: resetTime.diff(nowTime, "seconds"),
+                count: error.response.headers["x-ratelimit-remaining"],
+                total: error.response.headers["x-ratelimit-limit"],
+              },
             });
           } else {
             setNotice({ title: "Error", text: `${error.response.status} error.`, status: { error: true } });
@@ -174,8 +185,8 @@ function App() {
           * There is a rate limit of 10 times per minute.
         </Message>
         <Button.Group widths="10">
-          {pages.map(el => (
-            <Button page={el} onClick={listLoadButtonClick}>
+          {pages.map((el, idx) => (
+            <Button page={el} onClick={listLoadButtonClick} active={page === idx + 1}>
               {el.text}
             </Button>
           ))}
@@ -184,7 +195,19 @@ function App() {
         <Message {...notice.status} icon>
           <Message.Content>
             <Message.Header>{notice.title}</Message.Header>
-            {loading ? <Loader active={true} /> : notice.text}
+            {loading ? (
+              <Loader active={true} />
+            ) : (
+              <p>
+                <p>{notice.text}</p>
+                {notice.reset.seconds && (
+                  <p>
+                    (Limit release time {notice.reset.seconds} seconds ago. ratelimit-remaining {notice.reset.count}/
+                    {notice.reset.total})
+                  </p>
+                )}
+              </p>
+            )}
           </Message.Content>
         </Message>
 
