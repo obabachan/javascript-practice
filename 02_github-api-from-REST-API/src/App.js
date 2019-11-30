@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import { Container, Header, Button, Table, Image, Icon, Message, Loader, Segment } from "semantic-ui-react";
 import "semantic-ui-less/semantic.less";
@@ -49,7 +49,7 @@ function RankingList(props) {
     props.list.length &&
     props.list.map((el, idx) => (
       <Table.Row>
-        {fields.map((col, colx) => (
+        {fields.map(col => (
           <Table.Cell singleLine={col.singleLine ? true : false} textAlign={col.textAlign ? col.textAlign : "left"}>
             {col.value(el, idx + 1)}
           </Table.Cell>
@@ -82,8 +82,6 @@ const instance = axios.create({
   },
 });
 
-let isSet = false;
-
 function App() {
   const [list, setList] = useState({});
   const [loading, setLoading] = useState(false);
@@ -100,14 +98,13 @@ function App() {
     text: `${i * PER_PAGE + 1} - ${i * PER_PAGE + PER_PAGE}`,
   }));
 
-  if (!isSet) {
+  useEffect(() => {
     instance.interceptors.request.use(
       function(config) {
-        isSet = true;
         setLoading(true);
         setNotice({
           title: "Loading ...",
-          text: ``,
+          text: "",
           status: { warning: true },
         });
         console.log("request");
@@ -118,7 +115,14 @@ function App() {
         return Promise.reject(error);
       }
     );
-  }
+  }, []);
+
+  const shapeReset = (resetTime, headers) => ({
+    seconds: resetTime.diff(moment(), "seconds"),
+    count: headers["x-ratelimit-remaining"],
+    total: headers["x-ratelimit-limit"],
+  });
+
   const listLoadButtonClick = async (e, props) => {
     if (loading === false) {
       instance
@@ -132,44 +136,26 @@ function App() {
         })
         .then(results => {
           console.log(results);
-          const resetTime = moment.unix(results.headers["x-ratelimit-reset"]);
-          const nowTime = moment();
-          console.log(resetTime);
-          console.log(resetTime.diff(nowTime, "seconds"));
           setNotice({
             title: "Success",
             text: `Displayed rank ${props.page.text}.`,
             status: { success: true },
-            reset: {
-              seconds: resetTime.diff(nowTime, "seconds"),
-              count: results.headers["x-ratelimit-remaining"],
-              total: results.headers["x-ratelimit-limit"],
-            },
+            reset: shapeReset(moment.unix(results.headers["x-ratelimit-reset"]), results.headers),
           });
           setList(results.data.items);
           setPage(props.page.page);
         })
         .catch(error => {
-          console.log(error.response.status);
-          console.log(error.response.headers);
-          const resetTime = moment.unix(error.response.headers["x-ratelimit-reset"]);
-          const nowTime = moment();
-
-          console.log(resetTime);
+          let errorText = "error.";
           if (error.response && error.response.status === 403) {
-            setNotice({
-              title: "Error",
-              text: `${error.response.status} error.\n Please try after a while.`,
-              status: { error: true },
-              reset: {
-                seconds: resetTime.diff(nowTime, "seconds"),
-                count: error.response.headers["x-ratelimit-remaining"],
-                total: error.response.headers["x-ratelimit-limit"],
-              },
-            });
-          } else {
-            setNotice({ title: "Error", text: `${error.response.status} error.`, status: { error: true } });
+            errorText = errorText + "\n Please try after a while.";
           }
+          setNotice({
+            title: "Error",
+            text: `${error.response.status} ${errorText}`,
+            status: { error: true },
+            reset: shapeReset(moment.unix(error.response.headers["x-ratelimit-reset"]), error.response.headers),
+          });
         })
         .finally(() => {
           setLoading(false);
@@ -216,6 +202,7 @@ function App() {
         </Message>
 
         <RankingList list={list} page={page} />
+
         <Segment vertical></Segment>
         <Segment vertical>
           <div>
