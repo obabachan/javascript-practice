@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import "./App.css";
-import { Container, Header, Button, Table, Image, Icon, Message, Loader } from "semantic-ui-react";
+import { Container, Header, Button, Table, Image, Icon, Message, Loader, Segment } from "semantic-ui-react";
 import "semantic-ui-less/semantic.less";
 
 const axios = require("axios");
@@ -11,7 +11,7 @@ const PER_PAGE = 10;
 
 function RankingList(props) {
   const fields = [
-    { key: "rank", value: (el, idx) => (props.page - 1) * PER_PAGE + idx },
+    { key: "rank", value: (el, idx) => (props.page - 1) * PER_PAGE + idx, textAlign: "center" },
     {
       key: "repository / owner",
       value: el => (
@@ -29,26 +29,30 @@ function RankingList(props) {
           </Header.Content>
         </Header>
       ),
+      singleLine: true,
     },
-    { key: "stars", value: el => el.stargazers_count.toLocaleString() },
+    { key: "stars", value: el => el.stargazers_count.toLocaleString(), textAlign: "right" },
     { key: "discription", value: el => el.description },
-    { key: "language", value: el => el.language },
-    { key: "update_at", value: el => moment(el.updated_at).fromNow() },
+    { key: "language", value: el => el.language, textAlign: "center" },
+    { key: "update_at", value: el => moment(el.updated_at).fromNow(), textAlign: "right" },
     {
       key: "create_at",
       value: el => {
         const date = new Date(el.created_at);
         return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
       },
+      textAlign: "right",
     },
-    { key: "licence", value: el => el.license && el.license.key },
+    { key: "licence", value: el => el.license && el.license.key, textAlign: "center" },
   ];
   const records =
     props.list.length &&
     props.list.map((el, idx) => (
       <Table.Row>
         {fields.map((col, colx) => (
-          <Table.Cell singleLine={colx === 1}>{col.value(el, idx + 1)}</Table.Cell>
+          <Table.Cell singleLine={col.singleLine ? true : false} textAlign={col.textAlign ? col.textAlign : "left"}>
+            {col.value(el, idx + 1)}
+          </Table.Cell>
         ))}
       </Table.Row>
     ));
@@ -59,7 +63,7 @@ function RankingList(props) {
         <Table.Header>
           <Table.Row>
             {fields.map(el => (
-              <Table.HeaderCell>{el.key}</Table.HeaderCell>
+              <Table.HeaderCell textAlign="center">{el.key}</Table.HeaderCell>
             ))}
           </Table.Row>
         </Table.Header>
@@ -192,7 +196,7 @@ function App() {
           ))}
         </Button.Group>
 
-        <Message {...notice.status} icon>
+        <Message {...notice.status}>
           <Message.Content>
             <Message.Header>{notice.title}</Message.Header>
             {loading ? (
@@ -212,6 +216,18 @@ function App() {
         </Message>
 
         <RankingList list={list} page={page} />
+        <Segment vertical></Segment>
+        <Segment vertical>
+          <div>
+            <a
+              href="https://github.com/obabachan/javascript-practice/tree/master/02_github-api-from-REST-API"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="github" size="large" />
+            </a>
+          </div>
+        </Segment>
       </Container>
     </div>
   );
