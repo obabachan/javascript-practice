@@ -7,7 +7,7 @@ const axios = require("axios");
 const moment = require("moment");
 moment().format();
 
-const PER_PAGE = 10;
+const PER_PAGE = 100;
 
 function RankingList(props) {
   const fields = [
@@ -184,7 +184,7 @@ function App() {
         <Message>
           <Header as="h1" textAlign="center">
             <Icon name="star" />
-            Github Top10 Ranking of number of stars
+            Github Top1000 Ranking of number of stars
           </Header>
           * There is a rate limit of 10 times per minute.
         </Message>
